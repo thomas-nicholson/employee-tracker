@@ -8,6 +8,7 @@ var connection = mysql.createConnection({
   port : 3306,
   user : 'root',
   password : 'MySpace_64',
+  multipleStatements: true,
   database : 'employee_db'
 });
  
@@ -93,11 +94,60 @@ function addRole() {
             });
         });
     });
-    
 }
 
 function addEmployee() {
+    connection.query('SELECT * FROM role; SELECT * FROM employee;', function (error, results, fields) {
+        if (error) throw error;
+        let simpleRoles = Object.values(JSON.parse(JSON.stringify(results[0])));
+        var roleChoices = simpleRoles.map((item) => { return item.title});
 
+        let simpleManagers = Object.values(JSON.parse(JSON.stringify(results[1])));
+        var managerChoices = simpleManagers.map((item) => {return item.first_name +" "+ item.last_name});
+        managerChoices.push("null");
+        inquirer.prompt([
+            {
+                type: 'input',
+                message: "What is the employee's first name?",
+                name: 'firstName',
+            },
+            {
+                type: 'input',
+                message: "What is the employee's last name?",
+                name: 'lastName',
+            },
+            {
+                type: 'list',
+                message: 'What role does this employee have?',
+                choices: roleChoices,
+                name: 'role',
+            },
+            {
+                type: 'list',
+                message: 'Which manager does this employee have?',
+                choices: managerChoices,
+                name: 'manager',
+            },
+        ]).then((answer) => {
+            console.log(answer);
+            let role = simpleRoles.find((item) => {
+                return item.title === answer.role
+            });
+            let manager = {};
+            if (answer.manager === "null") {
+                manager.id = null;
+            } else {
+                manager = simpleManagers.find((item) => {
+                    return (item.first_name +" "+ item.last_name) === answer.manager;
+                })
+            }
+            connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${answer.firstName}", "${answer.lastName}", ${role.id}, ${manager.id})`, function(error, results, fields) {
+                if (error) throw error;
+                console.log("New Employee:", answer.firstName, answer.lastName, "added");
+                init();
+            });
+        });
+    });
 }
 
 function updateEmployeeRole() {
