@@ -45,7 +45,6 @@ VALUES ("Sales Lead", 100000, 1), -- 1
        ("Legal Team Lead", 190000, 4), -- 6
        ("Lawyer", 150000, 4); -- 7
 
-
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("Ashley", "Rodriguez", 3, null); -- 1
 
