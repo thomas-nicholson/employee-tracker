@@ -50,12 +50,50 @@ function addDepartment() {
             if (error) throw error;
             console.log("New Department:", answer.departmentName, "added");
             init();
-        })
+        });
     })
 }
 
 function addRole() {
-
+    connection.query('SELECT * FROM department', function (error, results, fields) {
+        if (error) throw error;
+        let simpleResults = Object.values(JSON.parse(JSON.stringify(results)));
+        var depChoices = simpleResults.map((item) => { return item.name});
+        inquirer.prompt([
+            {
+                type: 'input',
+                message: "What would you like to call the new role?",
+                name: 'roleName',
+            },
+            {
+                type: 'number',
+                message: "What is the salary of the new role?",
+                name: 'roleSalary',
+            },
+            {
+                type: 'list',
+                message: 'Which department is the new role in?',
+                choices: depChoices,
+                name: 'roleDepartment',
+            },
+        ])
+        .then((answer) => {
+            if (isNaN(answer.roleSalary)) {
+                console.log("Could not add new role: **INVALID SALARY**");
+                init()
+                return;
+            }
+            let department = simpleResults.find((item) => {
+                return item.name === answer.roleDepartment
+            })            
+            connection.query(`INSERT INTO role (title, salary, department_id) VALUES ("${answer.roleName}", ${answer.roleSalary}, "${department.id}");`, function(error, results, fields) {
+                if (error) throw error;
+                console.log("New Role:", answer.roleName, "added");
+                init();
+            });
+        });
+    });
+    
 }
 
 function addEmployee() {
@@ -70,7 +108,7 @@ function init () {
     inquirer.prompt([
         {
             type: 'list',
-            message: 'Would you like to add an engineer or an intern to your team? or finish building your team?',
+            message: 'What would you like to do?',
             choices: [
                 "View Departments",
                 "View Roles",
