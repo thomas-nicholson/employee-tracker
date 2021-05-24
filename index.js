@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const cTable = require('console.table');
 
 
 var connection = mysql.createConnection({
@@ -11,22 +12,29 @@ var connection = mysql.createConnection({
 });
  
 connection.connect();
- /*
-connection.query('SELECT * FROM employee_db.employee', function (error, results, fields) {
-    if (error) throw error;
-    console.log('The solution is: ', results);
-});*/
 
 function viewDepartments() {
-    
+    connection.query('SELECT * FROM department', function (error, results, fields) {
+        if (error) throw error;
+        console.table(results);
+        init();
+    });
 }
 
 function viewRoles() {
-
+    connection.query('SELECT role.id, role.title, role.salary, department.name AS department FROM role LEFT JOIN department ON role.department_id=department.id', function (error, results, fields) {
+        if (error) throw error;
+        console.table(results);
+        init();
+    });
 }
 
 function viewEmployees() {
-
+    connection.query("SELECT e.id, e.first_name, e.last_name, r.title, department.name AS department,r.salary, concat(m.first_name,' ', m.last_name) AS manager FROM ((employee AS e LEFT JOIN role AS r ON e.role_id=r.id) INNER JOIN department ON r.department_id=department.id) LEFT JOIN employee AS m ON e.manager_id=m.id ORDER BY e.id ASC;", function (error, results, fields) {
+        if (error) throw error;
+        console.table(results);
+        init();
+    });
 }
 
 function addDepartment() {
