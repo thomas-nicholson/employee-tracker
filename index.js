@@ -128,7 +128,8 @@ function addEmployee() {
                 choices: managerChoices,
                 name: 'manager',
             },
-        ]).then((answer) => {
+        ])
+        .then((answer) => {
             console.log(answer);
             let role = simpleRoles.find((item) => {
                 return item.title === answer.role
@@ -151,7 +152,41 @@ function addEmployee() {
 }
 
 function updateEmployeeRole() {
+    connection.query('SELECT * FROM employee; SELECT * FROM role;', function (error, results, fields) {
+        if (error) throw error;
+        let simpleEmployees = Object.values(JSON.parse(JSON.stringify(results[0])));
+        var employeeChoices = simpleEmployees.map((item) => { return item.first_name +" "+ item.last_name});
 
+        let simpleRoles = Object.values(JSON.parse(JSON.stringify(results[1])));
+        var roleChoices = simpleRoles.map((item) => {return item.title});
+        inquirer.prompt([
+            {
+                type: 'list',
+                message: "Which employees' role would you like to update?",
+                choices: employeeChoices,
+                name: 'employee',
+            },
+            {
+                type: 'list',
+                message: 'What role would you like to update it to?',
+                choices: roleChoices,
+                name: 'role',
+            }
+        ])
+        .then((answer) => {
+            let employee = simpleEmployees.find((item) => {
+                return (item.first_name +" "+ item.last_name) === answer.employee
+            });
+            let role = simpleRoles.find((item) => {
+                return item.title === answer.role
+            });
+            connection.query(`UPDATE employee set role_id=${role.id} WHERE employee.id=${employee.id}`, function(error, results, fields) {
+                if (error) throw error;
+                console.log("Employee:", answer.employee, "role updated");
+                init();
+            });
+        });
+    });
 }
 
 function init () {
