@@ -38,7 +38,20 @@ function viewEmployees() {
 }
 
 function addDepartment() {
-
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: "Would you like to call the new department?",
+            name: 'departmentName',
+        },
+    ])
+    .then((answer) => {
+        connection.query(`INSERT INTO department (name) VALUES ("${answer.departmentName}");`, function(error, results, fields) {
+            if (error) throw error;
+            console.log("New Department:", answer.departmentName, "added");
+            init();
+        })
+    })
 }
 
 function addRole() {
